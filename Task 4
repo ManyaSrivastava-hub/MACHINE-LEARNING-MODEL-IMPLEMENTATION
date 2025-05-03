@@ -1,0 +1,28 @@
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+
+url = "https://raw.githubusercontent.com/justmarkham/pycon-2016-tutorial/master/data/sms.tsv"
+df = pd.read_csv(url, sep='\t', header=None, names=['label', 'message'])
+
+df['label_num'] = df.label.map({'ham': 0, 'spam': 1})
+vectorizer = CountVectorizer()
+
+X = vectorizer.fit_transform(df['message'])
+y = df['label_num']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+sample = ["Congratulations! You've won a $1000 Walmart gift card. Click to claim now."]
+sample_vec = vectorizer.transform(sample)
+print("Sample prediction:", "Spam" if model.predict(sample_vec)[0] == 1 else "Not Spam")
